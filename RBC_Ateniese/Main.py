@@ -1,0 +1,79 @@
+import datetime
+
+from InputsConfig import InputsConfig as p
+from Event import Event, Queue
+from Scheduler import Scheduler
+from Statistics import Statistics
+import time
+from Models.Bitcoin.BlockCommit import BlockCommit
+from Models.Bitcoin.Consensus import Consensus
+from Models.Transaction import LightTransaction as LT, FullTransaction as FT
+from Models.Bitcoin.Node import Node
+from Models.Incentives import Incentives
+
+####################################### Start Simulation ########################################
+
+
+def main():
+    print("START SIMULATION >>")
+    for i in range(p.simulation_runs):
+        Statistics.simulation_start_time = time.perf_counter()
+        clock = 0  # set clock to 0 at the start of the simulation
+        if p.enable_transactions:
+            if p.transaction_model_type == "Light":
+                LT.create_transactions()  # generate pending transactions
+            elif p.transaction_model_type == "Full":
+                FT.create_transactions()  # generate pending transactions
+
+        # if has multiplayer in the secret sharing
+        # if p.enable_multi_party:
+        #     BlockCommit.setupSecretSharing()
+        #     for i in p.nodes:
+        #         print(f'NODE {i.id}: Public Key: {i.PK}, Secret Key: {i.SK}')
+
+        Node.generate_genesis_block()  # generate the genesis block for all miners
+        # initiate initial events >= 1 to start with
+        BlockCommit.generate_initial_events()
+
+        while not Queue.isEmpty() and clock <= p.simulation_duration:
+            next_event = Queue.get_next_event()
+            clock = next_event.time  # move clock to the time of the event
+            BlockCommit.handle_event(next_event)
+            Queue.remove_event(next_event)
+
+        # test for chameleon hash forging
+        if p.enable_redaction:
+            Consensus.fork_resolution()
+            Statistics.original_global_chain()
+            BlockCommit.generate_redaction_event(p.redaction_attempts)
+        Consensus.fork_resolution()  # apply the longest chain to resolve the forks
+        Incentives.distribute_rewards()  # distribute the rewards between the participating nodes
+        Statistics.simulation_end_time = time.perf_counter()
+        Statistics.total_execution_time = (Statistics.simulation_end_time - Statistics.simulation_start_time) * 1000
+        t = Statistics.total_execution_time
+        print(f"Total simulation time = {t:.2f} ms")
+
+        # calculate the simulation results (e.g., block statistics and miners' rewards)
+        Statistics.calculate(t)
+        
+        # Display comprehensive metrics
+        Statistics.display_metrics()
+
+        ########## reset all global variable before the next run #############
+        Statistics.reset()  # reset all variables used to calculate the results
+        Node.resetState()  # reset all the states (blockchains) for all nodes in the network
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Example model name (can be set dynamically based on model)
+        model_name = "Ch-Hash-Redaction"  # or "Deuber", "Puddu" depending on the module
+
+        # Compose a descriptive filename
+        fname = f"Results_{model_name}_nodes{len(p.nodes)}_bsize{p.Bsize}_tsize{p.Tsize}_{timestamp}.xlsx"
+
+        # print all the simulation results in an excel file
+        Statistics.print_to_excel(fname)
+        Statistics.reset2()  # reset profit results
+
+
+######################################################## Run Main method #####################################################################
+if __name__ == '__main__':
+    main()
