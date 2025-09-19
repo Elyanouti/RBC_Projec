@@ -63,11 +63,3 @@ pip install openpyxl xlsxwriter pandas numpy
   - `python RBC_Puddu/Main.py`
 - Simulation results, including performance metrics and statistics, will be printed to the console and saved to the `Results/` directory in Excel and CSV formats.
 
-## References
-- [Deuber, D., Magri, B., & Thyagarajan, S. A. K. (2019, May). Redactable blockchain in the permissionless setting. In 2019 IEEE Symposium on Security and Privacy (SP) (pp. 124-138). IEEE.](https://ieeexplore.ieee.org/abstract/document/8835372)
-- [Ateniese, G., Magri, B., Venturi, D., & Andrade, E. (2017, April). Redactable blockchain–or–rewriting history in bitcoin and friends. In 2017 IEEE European symposium on security and privacy (EuroS&P) (pp. 111-126). IEEE.](https://ieeexplore.ieee.org/abstract/document/7961975/)
-- [Puddu, I., Dmitrienko, A., & Capkun, S. (2017). $\mu $ chain: How to Forget without Hard Forks. Cryptology ePrint Archive.](https://eprint.iacr.org/2017/106)
-
-## License
-
-This simulator is intended for academic research and educational use. Refer to individual source files for license details.
